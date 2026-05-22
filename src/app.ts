@@ -5,6 +5,8 @@ import express, {
 } from "express";
 import { initDB } from "./db/index.js";
 import cors from "cors";
+import { authRouter } from "./modules/auth/aurh.route.js";
+import globalErrorHandle from "./middleware/globalErrorHandler.js";
 
 const app: Application = express();
 
@@ -24,6 +26,9 @@ app.get("/", (req: Request, res: Response) => {
   });
 });
 
+app.use("/api/auth",authRouter);
 
+
+app.use(globalErrorHandle)
 
 export default app;
