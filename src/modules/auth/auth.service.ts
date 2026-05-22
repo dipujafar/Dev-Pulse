@@ -41,7 +41,7 @@ const loginUserFormDB = async (payload: IUser) => {
   }
 
   const jwtPayload = {
-    id: user.id,
+    user_id: user.id,
     email: user.email,
     name: user.name,
     role: user.role,
