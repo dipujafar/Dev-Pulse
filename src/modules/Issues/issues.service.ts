@@ -1,5 +1,5 @@
 import { pool } from "../../db/index.js";
-import type { IIssues } from "./issues.interface.js";
+import type { IIssues, IQuery } from "./issues.interface.js";
 
 const createIssueIntoDB = async (payload: IIssues, userId: string) => {
   const { title, description, type } = payload;
@@ -10,6 +10,62 @@ const createIssueIntoDB = async (payload: IIssues, userId: string) => {
     [title, description, type, userId]
   );
   return result;
+};
+
+const getAllIssuesFromDB = async (query: IQuery) => {
+  const { sort = "newest", type, status } = query;
+
+  const queriesData: string[] = [];
+  const queryValues: string[] = [];
+
+  if (type) {
+    queryValues.push(type);
+    queriesData.push(`type = $${queryValues.length}`);
+  }
+
+  if (status) {
+    queryValues.push(status);
+    queriesData.push(`status = $${queryValues.length}`);
+  }
+
+  const where = queriesData.length ? `WHERE ${queriesData.join(" AND ")}` : "";
+  const orderBy = sort === "oldest" ? "ASC" : "DESC";
+
+  const issuesData = await pool.query(
+    `SELECT * FROM issues
+     ${where}
+     ORDER BY created_at ${orderBy}`,
+    queryValues
+  );
+
+  const issues = issuesData.rows;
+
+  if (issues.length === 0) {
+    return [];
+  }
+
+  const reportersId = [...new Set(issues.map((i) => i.reporter_id))];
+
+  const reportersResult = await pool.query(
+    `SELECT id, name, role FROM users WHERE id = ANY($1)`,
+    [reportersId]
+  );
+
+  const reporterMap: Record<number, unknown> = {};
+  for (const reporter of reportersResult.rows) {
+    reporterMap[reporter.id] = reporter;
+  }
+
+  return issues.map((issue) => ({
+    id: issue.id,
+    title: issue.title,
+    description: issue.description,
+    type: issue.type,
+    status: issue.status,
+    reporter: reporterMap[issue.reporter_id] ?? null,
+    created_at: issue.created_at,
+    updated_at: issue.updated_at,
+  }));
 };
 
 const getSingleIssueFromDB = async (id: string) => {
@@ -64,7 +120,7 @@ const updateIssueIntoDB = async (
 
   WHERE id=$4 RETURNING *
   `,
-    [title, description, type,id]
+    [title, description, type, id]
   );
 
   return result.rows[0];
@@ -85,6 +141,8 @@ const deleteIssueFromDB = async (id: string) => {
 
 export const issuesService = {
   createIssueIntoDB,
+  getAllIssuesFromDB,
   getSingleIssueFromDB,
+  updateIssueIntoDB,
   deleteIssueFromDB,
 };
