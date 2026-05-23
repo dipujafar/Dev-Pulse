@@ -11,7 +11,7 @@ const createIssue = async (req: Request, res: Response) => {
       statusCode: 201,
       success: true,
       message: "Issue created successfully",
-      data: result.rows[0],
+      data: result,
     });
   } catch (error: any) {
     sendResponse(res, {
@@ -43,7 +43,8 @@ const getAllIssues = async (req: Request, res: Response) => {
 };
 
 const getSingleIssue = async (req: Request, res: Response) => {
-  const {id} = req.params;
+  const { user_id } = req.user as JwtPayload;
+  const { id } = req.params;
   try {
     const result = await issuesService.getSingleIssueFromDB(id as string);
     sendResponse(res, {
@@ -62,9 +63,54 @@ const getSingleIssue = async (req: Request, res: Response) => {
   }
 };
 
+const updateIssue = async (req: Request, res: Response) => {
+  const { user_id } = req.user as JwtPayload;
+  const { id } = req.params;
+  try {
+    const result = await issuesService.updateIssueIntoDB(
+      req.body,
+      id as string,
+      user_id
+    );
+    sendResponse(res, {
+      statusCode: 200,
+      success: true,
+      message: "Issue updated successfully",
+      data: result,
+    });
+  } catch (error: any) {
+    sendResponse(res, {
+      statusCode: 500,
+      success: true,
+      message: error.message,
+      error: error,
+    });
+  }
+};
+
+const deleteIssue = async (req: Request, res: Response) => {
+  const { id } = req.params;
+  try {
+    await issuesService.deleteIssueFromDB(id as string);
+    sendResponse(res, {
+      statusCode: 200,
+      success: true,
+      message: "Issue deleted successfully",
+    });
+  } catch (error: any) {
+    sendResponse(res, {
+      statusCode: 500,
+      success: true,
+      message: error.message,
+      error: error,
+    });
+  }
+};
 
 export const issueController = {
   createIssue,
   getAllIssues,
-  getSingleIssue
+  getSingleIssue,
+  updateIssue,
+  deleteIssue
 };

@@ -9,7 +9,7 @@ const createIssueIntoDB = async (payload: IIssues, userId: string) => {
   `,
     [title, description, type, userId]
   );
-  return result;
+  return result.rows[0];
 };
 
 const getAllIssuesFromDB = async (query: IQuery) => {
@@ -76,7 +76,7 @@ const getSingleIssueFromDB = async (id: string) => {
     [id]
   );
 
-  if (result.rows[0]) {
+  if (result.rows.length === 0) {
     throw Error("Invalid issue id");
   }
   return result.rows[0];
