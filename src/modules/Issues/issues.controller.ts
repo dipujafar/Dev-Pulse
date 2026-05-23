@@ -43,7 +43,6 @@ const getAllIssues = async (req: Request, res: Response) => {
 };
 
 const getSingleIssue = async (req: Request, res: Response) => {
-  const { user_id } = req.user as JwtPayload;
   const { id } = req.params;
   try {
     const result = await issuesService.getSingleIssueFromDB(id as string);

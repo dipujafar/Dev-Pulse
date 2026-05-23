@@ -69,17 +69,30 @@ const getAllIssuesFromDB = async (query: IQuery) => {
 };
 
 const getSingleIssueFromDB = async (id: string) => {
-  const result = await pool.query(
+  const issueData = await pool.query(
     `
   SELECT * FROM issues WHERE id=$1
 `,
     [id]
   );
 
-  if (result.rows.length === 0) {
+  if (issueData.rows.length === 0) {
     throw Error("Invalid issue id");
   }
-  return result.rows[0];
+
+  const issue = issueData.rows[0];
+  const userData = await pool.query(
+    `SELECT id, name, role FROM users WHERE id=$1`,
+    [issue.reporter_id]
+  );
+  const user = userData.rows[0];
+
+  const result = {
+    ...issue,
+    reporter: { id: user.id, name: user.name, role: user.role },
+  };
+
+  return result;
 };
 
 const updateIssueIntoDB = async (
