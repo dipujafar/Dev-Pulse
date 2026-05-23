@@ -75,7 +75,11 @@ const getSingleIssueFromDB = async (id: string) => {
 `,
     [id]
   );
-  return result;
+
+  if (result.rows[0]) {
+    throw Error("Invalid issue id");
+  }
+  return result.rows[0];
 };
 
 const updateIssueIntoDB = async (
