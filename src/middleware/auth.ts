@@ -39,7 +39,8 @@ const auth = (...roles: (keyof typeof userRoles)[]) => {
       }
 
 
-      if (roles.length && roles.includes(user?.role)) {
+      console.log(roles);
+      if (!roles.length && !roles.includes(user?.role)) {
         return res.status(403).json({
           success: false,
           message: "Access Denied",

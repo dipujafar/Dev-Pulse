@@ -7,11 +7,11 @@ import bcrypt from "bcryptjs";
 const createUserIntoDB = async (payload: IUser) => {
   const { name, email, password, role } = payload;
 
-  const hasPassword = bcrypt.hash(password, 10);
+  const hasPassword = await bcrypt.hash(password, 10);
 
   const result = await pool.query(
     `
-        INSERT INTO users(name,email,password,role) VALUES($1,$2,$3,$4,COALESCE($5,'contributor')) RETURNING *
+        INSERT INTO users(name,email,password,role) VALUES($1,$2,$3,COALESCE($4,'contributor')) RETURNING *
         `,
     [name, email, hasPassword, role]
   );
@@ -36,10 +36,10 @@ const loginUserFormDB = async (payload: IUser) => {
 
   const user = userData.rows[0];
   const matchPassword = await bcrypt.compare(password, user.password);
+
   if (!matchPassword) {
     throw new Error("Password does not match");
   }
-
   const jwtPayload = {
     user_id: user.id,
     email: user.email,
@@ -52,16 +52,22 @@ const loginUserFormDB = async (payload: IUser) => {
     config.accessTokenExpired as `${number}d`
   );
 
+
+
   const refreshToken = createToken(
     jwtPayload,
     config.jwtRefreshSecret as string,
     config.refreshTokenExpired as `${number}d`
   );
+
+
   delete user.password;
   const data = {
     token,
     user,
   };
+
+  
 
   return { data, refreshToken };
 };

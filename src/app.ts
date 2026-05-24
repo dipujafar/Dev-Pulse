@@ -30,6 +30,13 @@ app.get("/", (req: Request, res: Response) => {
 app.use("/api/auth", authRouter);
 app.use("/api/issues", issuesRoute);
 
+app.use((req: Request, res: Response) => {
+  res.status(404).json({
+    success: false,
+    message: `API not found`,
+  });
+});
+
 app.use(globalErrorHandle);
 
 export default app;

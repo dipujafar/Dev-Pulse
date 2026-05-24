@@ -86,7 +86,7 @@ const getSingleIssueFromDB = async (id: string) => {
     [issue.reporter_id]
   );
   const user = userData.rows[0];
-
+  delete issue.reporter_id;
   const result = {
     ...issue,
     reporter: { id: user.id, name: user.name, role: user.role },
